@@ -1,0 +1,28 @@
+# Traefik Docker Labels Reference
+# Apply these labels to the web service in docker-compose.yml
+# See: docs/04-traefik.md
+
+labels:
+  # Enable Traefik for this service
+  traefik.enable: "true"
+
+  # Router configuration
+  traefik.http.routers.glitchtip.rule: "Host(`glitchtip.jefahnierocks.com`)"
+  traefik.http.routers.glitchtip.entrypoints: "websecure"
+
+  # TLS configuration
+  traefik.http.routers.glitchtip.tls.certresolver: "cloudflare"
+
+  # Service configuration
+  traefik.http.services.glitchtip.loadbalancer.server.port: "8000"
+
+  # Network (must match external network in docker-compose.yml)
+  traefik.docker.network: "traefik-public"
+
+# Prerequisites:
+# - Traefik must be running on the host
+# - External network 'traefik-public' must exist
+# - Cloudflare cert resolver must be configured in Traefik
+# - DNS A record for glitchtip.jefahnierocks.com pointing to server IP
+
+# Related: ../hetzner repo manages Traefik deployment

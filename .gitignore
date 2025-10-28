@@ -1,0 +1,29 @@
+# Environment and secrets
+.env
+.env.*
+!.env.template
+
+# Docker volumes and state
+*.log
+docker-compose.override.yml
+
+# Backup files
+backups/
+*.sql
+*.dump
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+*.tmp

@@ -1,0 +1,120 @@
+version: '3.8'
+
+# GlitchTip Self-Hosted Error Tracking
+# Domain: glitchtip.jefahnierocks.com
+# Docs: See docs/ directory for detailed configuration
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: glitchtip-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: glitchtip
+      POSTGRES_USER: glitchtip_maintainer
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U glitchtip_maintainer"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - glitchtip-internal
+
+  redis:
+    image: redis:7-alpine
+    container_name: glitchtip-redis
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - glitchtip-internal
+
+  web:
+    image: registry.gitlab.com/glitchtip/glitchtip:latest
+    container_name: glitchtip-web
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      DATABASE_URL: postgresql://glitchtip_maintainer:${POSTGRES_PASSWORD}@postgres:5432/glitchtip
+      REDIS_URL: redis://redis:6379/0
+      GLITCHTIP_DOMAIN: https://glitchtip.jefahnierocks.com
+      EMAIL_URL: ${EMAIL_URL}
+      DEFAULT_FROM_EMAIL: info@jefahnierocks.com
+      I_PAID_FOR_GLITCHTIP: "true"
+      ENABLE_USER_REGISTRATION: "false"
+      ENABLE_ORGANIZATION_CREATION: "false"
+      GLITCHTIP_MAX_EVENT_LIFE_DAYS: 90
+      UWSGI_WORKERS: 4
+      CACHE_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+    command: uwsgi --ini /opt/glitchtip/uwsgi.ini
+    volumes:
+      - glitchtip_data:/var/lib/glitchtip/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.glitchtip.rule=Host(`glitchtip.jefahnierocks.com`)"
+      - "traefik.http.routers.glitchtip.entrypoints=websecure"
+      - "traefik.http.routers.glitchtip.tls.certresolver=cloudflare"
+      - "traefik.http.services.glitchtip.loadbalancer.server.port=8000"
+      - "traefik.docker.network=traefik-public"
+    networks:
+      - glitchtip-internal
+      - traefik-public
+
+  worker:
+    image: registry.gitlab.com/glitchtip/glitchtip:latest
+    container_name: glitchtip-worker
+    restart: unless-stopped
+    depends_on:
+      - web
+      - redis
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      DATABASE_URL: postgresql://glitchtip_maintainer:${POSTGRES_PASSWORD}@postgres:5432/glitchtip
+      REDIS_URL: redis://redis:6379/0
+      CELERY_WORKER_CONCURRENCY: 2
+    command: celery -A glitchtip worker -l info
+    networks:
+      - glitchtip-internal
+
+  beat:
+    image: registry.gitlab.com/glitchtip/glitchtip:latest
+    container_name: glitchtip-beat
+    restart: unless-stopped
+    depends_on:
+      - web
+      - redis
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      DATABASE_URL: postgresql://glitchtip_maintainer:${POSTGRES_PASSWORD}@postgres:5432/glitchtip
+      REDIS_URL: redis://redis:6379/0
+    command: celery -A glitchtip beat -l info
+    networks:
+      - glitchtip-internal
+
+volumes:
+  pgdata:
+    driver: local
+  redisdata:
+    driver: local
+  glitchtip_data:
+    driver: local
+
+networks:
+  glitchtip-internal:
+    driver: bridge
+  traefik-public:
+    external: true
