@@ -17,12 +17,12 @@ labels:
   traefik.http.services.glitchtip.loadbalancer.server.port: "8000"
 
   # Network (must match external network in docker-compose.yml)
-  traefik.docker.network: "traefik-public"
+  traefik.docker.network: "proxy"
 
 # Prerequisites:
 # - Traefik must be running on the host
-# - External network 'traefik-public' must exist
+# - External network 'proxy' must exist
 # - Cloudflare cert resolver must be configured in Traefik
 # - DNS A record for glitchtip.jefahnierocks.com pointing to server IP
 
-# Related: ../hetzner repo manages Traefik deployment
+# Related: ../hetzner repo manages Traefik deployment and proxy network

@@ -5,8 +5,8 @@ Production-ready self-hosted GlitchTip error tracking deployment for `glitchtip.
 ## Quick Start
 
 ```bash
-# 1. Sync secrets from Infisical
-./scripts/sync-secrets.sh
+# 1. Export secrets from Infisical (requires gopass)
+OUTPUT=.env ./scripts/export-secrets.sh
 
 # 2. Deploy stack
 ./scripts/deploy.sh
@@ -23,9 +23,10 @@ open https://glitchtip.jefahnierocks.com
 ### Core Documentation
 - **[01-architecture.md](docs/01-architecture.md)** - System overview and component architecture
 - **[02-deployment.md](docs/02-deployment.md)** - Complete deployment guide and configuration
-- **[03-secrets.md](docs/03-secrets.md)** - Secret management with Infisical
+- **[03-secrets.md](docs/03-secrets.md)** - Secret management with Infisical (Universal Auth)
 - **[04-traefik.md](docs/04-traefik.md)** - Reverse proxy and TLS configuration
 - **[05-maintenance.md](docs/05-maintenance.md)** - Operations, backups, and troubleshooting
+- **[06-postal.md](docs/06-postal.md)** - Postal SMTP integration for email
 
 ### Configuration Files
 - **[docker-compose.yml](docker-compose.yml)** - Service definitions
@@ -34,7 +35,8 @@ open https://glitchtip.jefahnierocks.com
 
 ### Automation Scripts
 - **[scripts/deploy.sh](scripts/deploy.sh)** - Full deployment automation
-- **[scripts/sync-secrets.sh](scripts/sync-secrets.sh)** - Infisical secret sync
+- **[scripts/export-secrets.sh](scripts/export-secrets.sh)** - Infisical secret export (Universal Auth)
+- **[scripts/sync-secrets.sh](scripts/sync-secrets.sh)** - Legacy secret sync (deprecated)
 - **[scripts/backup.sh](scripts/backup.sh)** - Database backup automation
 
 ## Stack Components
@@ -63,10 +65,12 @@ This is part of a multi-repo deployment system:
 ## Infrastructure
 
 **Host:** Hetzner Cloud Ubuntu 24.04
+**Deploy Path:** `/opt/docker/glitchtip/`
 **Domain:** glitchtip.jefahnierocks.com
-**Reverse Proxy:** Traefik (managed in `../hetzner`)
+**Reverse Proxy:** Traefik on `proxy` network (managed in `../hetzner`)
 **TLS:** Cloudflare origin certificates
-**Secrets:** Infisical (project: `glitchtip`)
+**Email:** Postal SMTP (managed in `../hetzner`, see [docs/06-postal.md](docs/06-postal.md))
+**Secrets:** Infisical (project: `glitchtip`, machine identity auth via gopass)
 
 ## Common Operations
 

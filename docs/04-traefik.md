@@ -27,13 +27,13 @@ See [config/traefik/labels.yml](../config/traefik/labels.yml) for reference.
 ### Network Requirements
 GlitchTip web service connects to two networks:
 - `glitchtip-internal`: Internal service communication
-- `traefik-public`: External network for Traefik routing
+- `proxy`: External network for Traefik routing
 
 ```yaml
 networks:
   glitchtip-internal:
     driver: bridge
-  traefik-public:
+  proxy:
     external: true  # Must exist before deployment
 ```
 
@@ -76,9 +76,9 @@ Expected: `HTTP/2 200` or redirect to login
 ## Troubleshooting
 
 ### Service Not Reachable
-1. Verify `traefik-public` network exists:
+1. Verify `proxy` network exists:
    ```bash
-   docker network ls | grep traefik-public
+   docker network ls | grep proxy
    ```
 
 2. Verify web service is on network:

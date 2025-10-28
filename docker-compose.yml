@@ -1,8 +1,7 @@
-version: '3.8'
-
 # GlitchTip Self-Hosted Error Tracking
 # Domain: glitchtip.jefahnierocks.com
 # Docs: See docs/ directory for detailed configuration
+# Deployed to: /opt/docker/glitchtip/ (hetzner server)
 
 services:
   postgres:
@@ -51,8 +50,17 @@ services:
       DATABASE_URL: postgresql://glitchtip_maintainer:${POSTGRES_PASSWORD}@postgres:5432/glitchtip
       REDIS_URL: redis://redis:6379/0
       GLITCHTIP_DOMAIN: https://glitchtip.jefahnierocks.com
+
+      # Postal SMTP Integration (see docs/06-postal.md)
       EMAIL_URL: ${EMAIL_URL}
-      DEFAULT_FROM_EMAIL: info@jefahnierocks.com
+      EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL}
+      EMAIL_USE_TLS: "False"
+      EMAIL_USE_SSL: "False"
+      EMAIL_TIMEOUT: "10"
+      EMAIL_SUBJECT_PREFIX: "[GlitchTip]"
+
+      # Application Settings
       I_PAID_FOR_GLITCHTIP: "true"
       ENABLE_USER_REGISTRATION: "false"
       ENABLE_ORGANIZATION_CREATION: "false"
@@ -69,10 +77,10 @@ services:
       - "traefik.http.routers.glitchtip.entrypoints=websecure"
       - "traefik.http.routers.glitchtip.tls.certresolver=cloudflare"
       - "traefik.http.services.glitchtip.loadbalancer.server.port=8000"
-      - "traefik.docker.network=traefik-public"
+      - "traefik.docker.network=proxy"
     networks:
       - glitchtip-internal
-      - traefik-public
+      - proxy
 
   worker:
     image: registry.gitlab.com/glitchtip/glitchtip:latest
@@ -116,5 +124,5 @@ volumes:
 networks:
   glitchtip-internal:
     driver: bridge
-  traefik-public:
+  proxy:
     external: true

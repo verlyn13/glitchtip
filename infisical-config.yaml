@@ -1,0 +1,94 @@
+# GlitchTip Infisical Configuration
+# This file contains non-sensitive configuration details for Infisical integration
+# Sensitive credentials are stored in gopass: infisical/machine-identities/hetzner-glitchtip-prod/*
+
+infisical:
+  project:
+    name: glitchtip
+    slug: <TO_BE_CREATED>
+    id: <TO_BE_CREATED>
+
+  environment:
+    name: prod
+    slug: prod
+
+  secrets:
+    paths:
+      database:
+        path: /glitchtip/database
+        secrets:
+          - POSTGRES_USER: glitchtip_maintainer
+          - POSTGRES_DB: glitchtip
+          - POSTGRES_PASSWORD: <32-char secure password>
+      application:
+        path: /glitchtip/application
+        secrets:
+          - SECRET_KEY: <64-char Django secret key>
+          - EMAIL_URL: <smtp://username:password@smtp.server.com:587/?ssl=True>
+          - DEFAULT_FROM_EMAIL: info@jefahnierocks.com
+
+machine_identity:
+  name: hetzner-glitchtip-prod
+  identity_id: <TO_BE_CREATED>
+  auth_method: Universal Auth
+  role: viewer
+
+  universal_auth:
+    client_id: <TO_BE_CREATED>
+    client_secret_description: hetzner-glitchtip-prod-secret
+    # client_secret stored in: gopass show infisical/machine-identities/hetzner-glitchtip-prod/client-secret
+
+  access:
+    ttl: 7200  # 2 hours
+    max_ttl: 86400  # 24 hours
+    trusted_ips:
+      - 91.99.101.204/32  # Hetzner server
+
+  project_access:
+    - project: <glitchtip-project-slug>
+      environment: prod
+      role: viewer
+      paths:
+        - /glitchtip/database
+        - /glitchtip/application
+
+deployment:
+  server:
+    host: hetzner-secure
+    ip: 91.99.101.204
+    ssh_port: 2222
+    user: verlyn13
+
+  directories:
+    compose: /opt/docker/glitchtip
+    backups: /opt/backups/glitchtip
+    scripts: /opt/scripts
+
+  domain: glitchtip.jefahnierocks.com
+
+  reverse_proxy:
+    provider: traefik
+    network: proxy
+    cert_resolver: cloudflare
+
+credentials_location:
+  gopass:
+    identity_id: infisical/machine-identities/hetzner-glitchtip-prod/identity-id
+    client_id: infisical/machine-identities/hetzner-glitchtip-prod/client-id
+    client_secret: infisical/machine-identities/hetzner-glitchtip-prod/client-secret
+
+verification_commands:
+  retrieve_identity_id: gopass show infisical/machine-identities/hetzner-glitchtip-prod/identity-id
+  retrieve_client_id: gopass show infisical/machine-identities/hetzner-glitchtip-prod/client-id
+  retrieve_client_secret: gopass show infisical/machine-identities/hetzner-glitchtip-prod/client-secret
+  test_auth: |
+    export INFISICAL_UNIVERSAL_AUTH_CLIENT_ID=$(gopass show infisical/machine-identities/hetzner-glitchtip-prod/client-id)
+    export INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET=$(gopass show infisical/machine-identities/hetzner-glitchtip-prod/client-secret)
+    infisical export --projectId=<project-id> --env=prod --path=/glitchtip
+
+notes:
+  - Machine identity to be created in Infisical
+  - Credentials to be stored in gopass after creation
+  - Identity should have viewer (read-only) access to glitchtip project
+  - Restricted to Hetzner server IP only
+  - Follows pattern established by Metabase and SonarQube deployments

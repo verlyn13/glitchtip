@@ -5,31 +5,38 @@
 ### Infrastructure (managed in `../hetzner`)
 - Ubuntu 24.04 LTS server provisioned
 - Docker and Docker Compose installed
-- Traefik running on `traefik-public` network
+- Traefik running on `proxy` network
 - Cloudflare DNS configured: `glitchtip.jefahnierocks.com` → server IP
+- (Optional) Postal deployed for email functionality
 
 ### Secrets (managed in `../infisical`)
 - Infisical project: `glitchtip`
+- Machine identity: `glitchtip-machine-identity` configured
 - Required secrets configured (see [03-secrets.md](./03-secrets.md))
+- Machine identity credentials stored in gopass
 
 ## Deployment Steps
 
 ### 1. Clone Repository
 ```bash
-cd /opt
+cd /opt/docker
 git clone git@github.com:verlyn13/glitchtip.git
 cd glitchtip
 ```
 
-### 2. Sync Secrets from Infisical
+### 2. Export Secrets from Infisical
 ```bash
-./scripts/sync-secrets.sh
-# Generates .env from Infisical secrets
+OUTPUT=.env ./scripts/export-secrets.sh
+# Exports secrets from /glitchtip/database and /glitchtip/application
 ```
+
+**Prerequisites:**
+- `infisical` CLI installed
+- `gopass` configured with machine identity credentials
 
 ### 3. Create External Network (if not exists)
 ```bash
-docker network create traefik-public 2>/dev/null || true
+docker network create proxy 2>/dev/null || true
 ```
 
 ### 4. Deploy Stack
@@ -55,19 +62,33 @@ docker compose exec web ./manage.py createsuperuser
 
 ## Environment Variables
 
-### Required (from Infisical)
-- `SECRET_KEY`: Django secret (generate with `openssl rand -hex 32`)
+### Required Secrets (from Infisical)
+
+**Database secrets** (`/glitchtip/database`):
 - `POSTGRES_PASSWORD`: Database password
-- `EMAIL_URL`: SMTP connection string
+
+**Application secrets** (`/glitchtip/application`):
+- `SECRET_KEY`: Django secret (generate with `openssl rand -hex 32`)
+- `EMAIL_URL`: Postal SMTP connection string (see [06-postal.md](./06-postal.md))
+- `DEFAULT_FROM_EMAIL`: From address (must be verified in Postal)
 
 ### Application Settings
 Configured in [docker-compose.yml](../docker-compose.yml):
 - `GLITCHTIP_DOMAIN`: https://glitchtip.jefahnierocks.com
-- `DEFAULT_FROM_EMAIL`: info@jefahnierocks.com
 - `I_PAID_FOR_GLITCHTIP`: true
 - `ENABLE_USER_REGISTRATION`: false
 - `ENABLE_ORGANIZATION_CREATION`: false
 - `GLITCHTIP_MAX_EVENT_LIFE_DAYS`: 90
+
+### Email Configuration (Postal)
+Configured in [docker-compose.yml](../docker-compose.yml):
+- `EMAIL_BACKEND`: django.core.mail.backends.smtp.EmailBackend
+- `EMAIL_USE_TLS`: False
+- `EMAIL_USE_SSL`: False
+- `EMAIL_TIMEOUT`: 10
+- `EMAIL_SUBJECT_PREFIX`: [GlitchTip]
+
+See [06-postal.md](./06-postal.md) for complete email setup
 
 ## Post-Deployment Configuration
 
@@ -103,4 +124,6 @@ Migrations run automatically on container start.
 ## See Also
 - [01-architecture.md](./01-architecture.md) - System overview
 - [03-secrets.md](./03-secrets.md) - Secret management
+- [06-postal.md](./06-postal.md) - Postal email integration
 - [05-maintenance.md](./05-maintenance.md) - Operations guide
+- [04-traefik.md](./04-traefik.md) - Reverse proxy configuration

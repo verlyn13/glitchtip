@@ -27,21 +27,21 @@ log_error() {
 
 cd "$REPO_ROOT"
 
-# Step 1: Sync secrets
-log_info "Step 1/5: Syncing secrets from Infisical..."
-if [[ -x "$SCRIPT_DIR/sync-secrets.sh" ]]; then
-    "$SCRIPT_DIR/sync-secrets.sh"
+# Step 1: Export secrets from Infisical (via machine identity)
+log_info "Step 1/5: Exporting secrets from Infisical..."
+if [[ -x "$SCRIPT_DIR/export-secrets.sh" ]]; then
+    OUTPUT="$REPO_ROOT/.env" "$SCRIPT_DIR/export-secrets.sh"
 else
-    log_error "sync-secrets.sh not found or not executable"
+    log_error "export-secrets.sh not found or not executable"
     exit 1
 fi
 
 # Step 2: Create external network if needed
-log_info "Step 2/5: Ensuring traefik-public network exists..."
-if docker network create traefik-public 2>/dev/null; then
-    log_info "Created traefik-public network"
+log_info "Step 2/5: Ensuring proxy network exists..."
+if docker network create proxy 2>/dev/null; then
+    log_info "Created proxy network"
 else
-    log_warn "traefik-public network already exists (OK)"
+    log_warn "proxy network already exists (OK)"
 fi
 
 # Step 3: Pull latest images

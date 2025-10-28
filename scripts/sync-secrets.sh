@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Sync secrets from Infisical to .env file
+# DEPRECATED: Use export-secrets.sh instead (Universal Auth with machine identity)
+# This script uses legacy service token authentication
 # See: docs/03-secrets.md
 
 set -euo pipefail
