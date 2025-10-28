@@ -27,6 +27,7 @@ open https://glitchtip.jefahnierocks.com
 - **[04-traefik.md](docs/04-traefik.md)** - Reverse proxy and TLS configuration
 - **[05-maintenance.md](docs/05-maintenance.md)** - Operations, backups, and troubleshooting
 - **[06-postal.md](docs/06-postal.md)** - Postal SMTP integration for email
+- **[INFISICAL_CLI_REFERENCE.md](docs/INFISICAL_CLI_REFERENCE.md)** - Infisical CLI command reference
 
 ### Configuration Files
 - **[docker-compose.yml](docker-compose.yml)** - Service definitions

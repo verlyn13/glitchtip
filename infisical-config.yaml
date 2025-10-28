@@ -5,27 +5,38 @@
 infisical:
   project:
     name: glitchtip
-    slug: <TO_BE_CREATED>
-    id: <TO_BE_CREATED>
+    slug: glitchtip
+    id: 215d0a7e-1320-4e25-91d3-a2dc540aa20a
 
   environment:
     name: prod
     slug: prod
 
+  folders:
+    root:
+      id: bd2cf320-d7d7-49f2-8a33-0b7122f4ab0a
+      path: /glitchtip
+    database:
+      id: f729d1f6-e94f-4de0-b4f8-d0a47155fa1f
+      path: /glitchtip/database
+    application:
+      id: b9f54b93-2a85-4581-b5a9-6ca6c29823d8
+      path: /glitchtip/application
+
   secrets:
     paths:
       database:
         path: /glitchtip/database
+        folder_id: f729d1f6-e94f-4de0-b4f8-d0a47155fa1f
         secrets:
-          - POSTGRES_USER: glitchtip_maintainer
-          - POSTGRES_DB: glitchtip
           - POSTGRES_PASSWORD: <32-char secure password>
       application:
         path: /glitchtip/application
+        folder_id: b9f54b93-2a85-4581-b5a9-6ca6c29823d8
         secrets:
           - SECRET_KEY: <64-char Django secret key>
-          - EMAIL_URL: <smtp://username:password@smtp.server.com:587/?ssl=True>
-          - DEFAULT_FROM_EMAIL: info@jefahnierocks.com
+          - EMAIL_URL: smtp://glitchtip%40app:PASSWORD@smtp.postal.jefahnierocks.com:2525
+          - DEFAULT_FROM_EMAIL: glitchtip@jefahnierocks.com
 
 machine_identity:
   name: hetzner-glitchtip-prod
@@ -45,7 +56,8 @@ machine_identity:
       - 91.99.101.204/32  # Hetzner server
 
   project_access:
-    - project: <glitchtip-project-slug>
+    - project: glitchtip
+      project_id: 215d0a7e-1320-4e25-91d3-a2dc540aa20a
       environment: prod
       role: viewer
       paths:
@@ -84,11 +96,23 @@ verification_commands:
   test_auth: |
     export INFISICAL_UNIVERSAL_AUTH_CLIENT_ID=$(gopass show infisical/machine-identities/hetzner-glitchtip-prod/client-id)
     export INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET=$(gopass show infisical/machine-identities/hetzner-glitchtip-prod/client-secret)
-    infisical export --projectId=<project-id> --env=prod --path=/glitchtip
+    infisical export --projectId=215d0a7e-1320-4e25-91d3-a2dc540aa20a --env=prod --path=/glitchtip
+
+status:
+  folders_created: ✅ Complete
+  folders:
+    - path: /glitchtip/database (f729d1f6-e94f-4de0-b4f8-d0a47155fa1f)
+    - path: /glitchtip/application (b9f54b93-2a85-4581-b5a9-6ca6c29823d8)
+  secrets_pending:
+    - POSTGRES_PASSWORD (in /glitchtip/database)
+    - SECRET_KEY (in /glitchtip/application)
+    - EMAIL_URL (in /glitchtip/application)
+    - DEFAULT_FROM_EMAIL (in /glitchtip/application)
 
 notes:
-  - Machine identity to be created in Infisical
-  - Credentials to be stored in gopass after creation
+  - Folder structure created successfully
+  - Machine identity credentials to be created and stored in gopass
   - Identity should have viewer (read-only) access to glitchtip project
   - Restricted to Hetzner server IP only
   - Follows pattern established by Metabase and SonarQube deployments
+  - Secrets need to be added via Infisical UI or CLI

@@ -11,8 +11,12 @@ All secrets are managed in **Infisical** (see `../infisical` repo for setup).
 
 Secrets are organized in Infisical using two paths:
 
-1. **`/glitchtip/database`** - Database credentials
-2. **`/glitchtip/application`** - Application configuration including email
+1. **`/glitchtip/database`** - Database credentials ✅ Created
+2. **`/glitchtip/application`** - Application configuration including email ✅ Created
+
+**Folder IDs:**
+- `/glitchtip/database`: `f729d1f6-e94f-4de0-b4f8-d0a47155fa1f`
+- `/glitchtip/application`: `b9f54b93-2a85-4581-b5a9-6ca6c29823d8`
 
 ## Required Secrets
 
